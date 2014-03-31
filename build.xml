@@ -1,0 +1,119 @@
+<?xml version="1.0" ?>
+<project name="diary" basedir="." default="compile">
+
+    <description>
+      Compiles and runs diary application.
+    </description>
+
+    <property file="build.properties" />
+
+    <!-- Source Directories configuration -->
+    <property name="src.java" location="src/java" />
+    <property name="src.conf" location="src/conf" />
+    <property name="test.java" location="test/java" />
+    <property name="test.conf" location="test/conf" />
+
+
+    <!-- Initial directories configuration -->
+    <property name="build.dir" location="build" />
+    <property name="test.dir" location="${build.dir}/test" />
+    <property name="build.classes.dir" location="${build.dir}/classes" />
+    <property name="test.classes.dir" location="${test.dir}/classes" />
+    <property name="test.data.dir" location="${test.dir}/data" />
+    <property name="test.reports.dir" location="${test.dir}/reports" />
+    <property name="dist.dir" location="dist" />
+
+    <tstamp>
+      <format property="now" pattern="yyyy-MM-dd" />
+    </tstamp>
+
+    <property name="artifact" value="diary-${now}" />
+    <property name="target.zip" location="${dist.dir}/${artifact}.zip" />
+
+    <!-- junit test cases configuration properties -->
+    <property name="test.suite" value="d1.core.test.AllTests" />
+
+    <!-- Classpath for file source compilation -->
+    <path id="compile.classpath">
+      <fileset dir="lib">
+	<include name="*.jar" />
+      </fileset>
+    </path>
+
+    <!-- classpath for test compilation -->
+    <path id="test.compile.classpath">
+      <path refid="compile.classpath" />
+      <pathelement location="${build.classes.dir}" />
+    </path>
+
+    <!-- classpath for test execution -->
+    <path id="test.classpath">
+      <path refid="test.compile.classpath" />
+      <pathelement location="${test.classes.dir}" />
+    </path>
+
+    <!-- Target for build initialization -->
+    <target name="init">
+      <mkdir dir="${build.dir}" />
+      <mkdir dir="${build.classes.dir}" />
+      <mkdir dir="${dist.dir}" />
+    </target>
+
+    <!-- initialization target for test suite -->
+    <target name="test-init">
+      <mkdir dir="${test.classes.dir}" />
+      <delete dir="${test.data.dir}" />
+      <delete dir="${test.reports.dir}" />
+      <mkdir dir="${test.data.dir}" />
+      <mkdir dir="${test.reports.dir}" />
+    </target>
+
+    <!-- target for source compilation -->
+    <target name="compile" depends="init" 
+	    description="Compiles the source code">
+      <javac srcdir="${src.java}" 
+	     includeAntRuntime="true"
+	     destdir="${build.classes.dir}">
+	<classpath refid="compile.classpath" />
+      </javac>
+    </target>
+
+    <!-- target for test compilation -->
+    <target name="test-compile" depends="test-init, compile"
+	    description="Compiles the test code">
+      <javac srcdir="${test.java}"
+	     destdir="${test.classes.dir}" 
+	     debug="true" 
+	     includeAntRuntime="false">
+	<classpath refid="test.classpath" />
+      </javac>
+    </target>
+
+    <!-- target for junit test cases -->
+    <target name="test-basic" depends="test-compile">
+      <junit printsummary="false" haltonfailure="true">
+	<classpath refid="test.classpath" />
+	<formatter type="brief" usefile="false" />
+	<formatter type="xml" />
+	<batchtest todir="${test.data.dir}">
+	  <fileset dir="${test.classes.dir}"
+		   includes="**/test/*Test.class" />
+	</batchtest>
+      </junit>
+    </target>
+
+    <!-- target for creating distributable jar for application -->
+    <target name="archive" depends="compile"
+	    description="Creates the JAR file">
+      <jar destfile="${dist.dir}/${artifact}.jar" 
+	   basedir="${build.dir}" />
+    </target>
+
+    <!-- target for cleaning temporary files -->
+    <target name="clean" depends="init"
+	    description="Removes the temporary directories used">
+      <delete dir="${build.dir}" />
+      <delete dir="${dist.dir}" />
+    </target>
+
+</project>
